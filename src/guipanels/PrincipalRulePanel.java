@@ -1,7 +1,7 @@
 package guipanels;
 
 import categories.*;
-import categories.Action;
+import categories.ResourceAction;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class PrincipalRulePanel {
     private JPanel innerPanel;
-    private Map<Action, JCheckBox> actionJCheckBoxMap;
+    private Map<ResourceAction, JCheckBox> actionJCheckBoxMap;
     private AssignCategories assignCategories;
     public PrincipalRulePanel(AssignCategories assignCategories){
         innerPanel = new JPanel();
@@ -22,7 +22,7 @@ public class PrincipalRulePanel {
 
     public void init(){
         innerPanel.setLayout(new GridLayout(6, 6));
-        for(categories.Action a: assignCategories.getResourceActions()){
+        for(ResourceAction a: assignCategories.getResourceActions()){
             JPanel currGridCell = new JPanel(new BorderLayout());
             innerPanel.add(currGridCell);
             String temp1 = a.getResource().getName();
@@ -34,7 +34,7 @@ public class PrincipalRulePanel {
             currGridCell.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         }
     }
-    public Map<Action, JCheckBox> getActionJCheckBoxMap(){
+    public Map<ResourceAction, JCheckBox> getActionJCheckBoxMap(){
         return actionJCheckBoxMap;
     }
 

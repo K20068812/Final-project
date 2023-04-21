@@ -1,6 +1,6 @@
 package database;
 
-import categories.Action;
+import categories.ResourceAction;
 import categories.Principal;
 import categories.PrincipalCategory;
 import categories.Resource;
@@ -74,20 +74,20 @@ public class UndoClass {
         nameList.add(resource);
         actionTracker.add(nameList);
     }
-    public void addRemoveResource(Resource r, Map<Action, List<PrincipalCategory>> assignedPerms){
+    public void addRemoveResource(Resource r, Map<ResourceAction, List<PrincipalCategory>> assignedPerms){
         List<Object> nameList = new ArrayList<>();
         nameList.add(UNDO_TYPE.REMOVE_RESOURCE);
         nameList.add(r);
         nameList.add(assignedPerms);
         actionTracker.add(nameList);
     }
-    public void addAddAction(Action a){
+    public void addAddAction(ResourceAction a){
         List<Object> nameList = new ArrayList<>();
         nameList.add(UNDO_TYPE.ADD_ACTION);
         nameList.add(a);
         actionTracker.add(nameList);
     }
-    public void addRemoveAction(Action a, List<PrincipalCategory> principalCategories){
+    public void addRemoveAction(ResourceAction a, List<PrincipalCategory> principalCategories){
         List<Object> nameList = new ArrayList<>();
         nameList.add(UNDO_TYPE.REMOVE_ACTION);
         nameList.add(a);
@@ -114,7 +114,7 @@ public class UndoClass {
         infoList.add(oldSeniorCategories);
         actionTracker.add(infoList);
     }
-    public void addUpdatePermissions(PrincipalCategory category, List<Action> oldActions){
+    public void addUpdatePermissions(PrincipalCategory category, List<ResourceAction> oldActions){
         List<Object> infoList = new ArrayList<>();
         infoList.add(UNDO_TYPE.UPDATE_PERMISSIONS);
         infoList.add(category);

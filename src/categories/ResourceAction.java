@@ -3,14 +3,14 @@ package categories;
 
 import java.util.Objects;
 
-public class Action {
+public class ResourceAction {
     private String name;
     private Resource resource;
-    public Action(String name, Resource resource){
+    public ResourceAction(String name, Resource resource){
         this.name = name;
         this.resource = resource;
     }
-    public Action(Action other) {
+    public ResourceAction(ResourceAction other) {
         this.name = other.name;
         this.resource = new Resource(other.resource);
     }
@@ -19,7 +19,7 @@ public class Action {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Action action = (Action) o;
+        ResourceAction action = (ResourceAction) o;
         return Objects.equals(name, action.name) &&
                 Objects.equals(resource, action.resource);
     }

@@ -1,6 +1,6 @@
 package guipanels;
 import categories.*;
-import categories.Action;
+import categories.ResourceAction;
 import database.SaveAssignCategoriesWorker;
 import database.UndoClass;
 import org.graphstream.graph.*;
@@ -109,7 +109,7 @@ public class GraphDisplay {
 
                                 HelperClass.showDoubleDialog(frame, "Info", categoryRules, categoryMembers, "Rules", "Members");
                             } else if(e.getButton() == MouseEvent.BUTTON3) {
-                                Set<Action> categoryActions = new HashSet<>();
+                                Set<ResourceAction> categoryActions = new HashSet<>();
                                 List<String> juniorCategories = new ArrayList<>();
                                 for(PrincipalCategory pc: HelperClass.findAllJuniorCategories(curr)){
                                     categoryActions.addAll(pc.getActions());
@@ -118,7 +118,7 @@ public class GraphDisplay {
                                     }
                                 }
                                 List<String> actions = new ArrayList<>();
-                                for (Action a: categoryActions) {
+                                for (ResourceAction a: categoryActions) {
                                     actions.add(a.toString());
                                 }
                                 HelperClass.showDoubleDialog(frame, "Info", actions, juniorCategories, "Permissions", "Junior categories");
@@ -136,7 +136,7 @@ public class GraphDisplay {
                                 HelperClass.showListDialog(frame, "Attributes ", attributes);
                             } else if(e.getButton() == MouseEvent.BUTTON3){
                                 Set<PrincipalCategory> associatedCategories = new HashSet<>();
-                                Set<Action> associatedPermissions = new HashSet<>();
+                                Set<ResourceAction> associatedPermissions = new HashSet<>();
                                 for(PrincipalCategory pc: assignCategories.getPrincipalCategories()){
                                     if(pc.getPrincipals().contains(curr)){
                                         associatedCategories.add(pc);
@@ -151,7 +151,7 @@ public class GraphDisplay {
                                     categoryList.add(pc.getName());
                                 }
                                 List<String> permissionList = new ArrayList<>();
-                                for (Action a: associatedPermissions) {
+                                for (ResourceAction a: associatedPermissions) {
                                     permissionList.add(a.toString());
                                 }
                                 HelperClass.showDoubleDialog(frame, "Info", categoryList, permissionList, "Categories", "Actions");
@@ -159,7 +159,7 @@ public class GraphDisplay {
                         }
                     }  else if(node.getId().startsWith("Action")){
                         String resourceName = "";
-                        Action curr = null;
+                        ResourceAction curr = null;
                         Node[] neighborNodeArray = node.neighborNodes().toArray(Node[]::new);
                         for(Node neighborNode : neighborNodeArray){
                             if(neighborNode.getId().startsWith("Resource")){
@@ -191,7 +191,7 @@ public class GraphDisplay {
                         Resource curr = HelperClass.getResourceByName(assignCategories.getResources(), resourceName);
                         if(curr != null){
                             Set<Principal> authorisedPrincipals = new HashSet<>();
-                            for(Action a : HelperClass.getAllResourceActions(assignCategories.getResourceActions(), curr)) {
+                            for(ResourceAction a : HelperClass.getAllResourceActions(assignCategories.getResourceActions(), curr)) {
                                 for (PrincipalCategory pc : assignCategories.getPrincipalCategories()) {
                                     for (PrincipalCategory junior : HelperClass.findAllJuniorCategories(pc)) {
                                         if (junior.getActions().contains(a)) {
@@ -348,8 +348,8 @@ public class GraphDisplay {
             List<String> names = new ArrayList<>();
             for(Resource r : assignCategories.getResources()){
                 Set<Principal> authorisedPrincipals = new HashSet<>();
-                List<Action> correspondingActions = HelperClass.getAllResourceActions(assignCategories.getResourceActions(), r);
-                for(Action curr : correspondingActions){
+                List<ResourceAction> correspondingActions = HelperClass.getAllResourceActions(assignCategories.getResourceActions(), r);
+                for(ResourceAction curr : correspondingActions){
                     for(PrincipalCategory pc: assignCategories.getPrincipalCategories()){
                         for(PrincipalCategory junior: HelperClass.findAllJuniorCategories(pc)){
                             if(junior.getActions().contains(curr)){
@@ -372,7 +372,7 @@ public class GraphDisplay {
             List<String> names = new ArrayList<>();
             for (Principal curr : assignCategories.getPrincipals()) {
                 Set<PrincipalCategory> associatedCategories = new HashSet<>();
-                Set<Action> associatedPermissions = new HashSet<>();
+                Set<ResourceAction> associatedPermissions = new HashSet<>();
                 for (PrincipalCategory pc : assignCategories.getPrincipalCategories()) {
                     if (pc.getPrincipals().contains(curr)) {
                         associatedCategories.add(pc);
@@ -415,7 +415,7 @@ public class GraphDisplay {
             boolean res = true;
             List<String> names = new ArrayList<>();
             for(PrincipalCategory curr : assignCategories.getPrincipalCategories()) {
-                Set<Action> categoryActions = new HashSet<>();
+                Set<ResourceAction> categoryActions = new HashSet<>();
                 for (PrincipalCategory pc : HelperClass.findAllJuniorCategories(curr)) {
                     categoryActions.addAll(pc.getActions());
                 }
@@ -515,7 +515,7 @@ public class GraphDisplay {
             Resource r = HelperClass.getResourceByName(assignCategories.getResources(), formattedResourceText);
             boolean error = false;
             if(r != null){
-                for(Action a : assignCategories.getResourceActions()){
+                for(ResourceAction a : assignCategories.getResourceActions()){
                     if(a.getResource().equals(r) && a.getName().strip().equalsIgnoreCase(formattedActionText)){
                         error = true;
                     }
@@ -524,7 +524,7 @@ public class GraphDisplay {
                 error = true;
             }
             if(!error){
-                Action newAction = new Action(formattedActionText, r);
+                ResourceAction newAction = new ResourceAction(formattedActionText, r);
                 undoClass.addAddAction(newAction);
                 assignCategories.getResourceActions().add(newAction);
                 updateGraph();
@@ -561,7 +561,7 @@ public class GraphDisplay {
         okButton.addActionListener(e -> {
             String formattedResourceText = field1.getText().toLowerCase().strip();
             String formattedActionText = field2.getText().toLowerCase().strip();
-            Action toRemove = HelperClass.getActionByName(assignCategories.getResourceActions(),formattedActionText, formattedResourceText);
+            ResourceAction toRemove = HelperClass.getActionByName(assignCategories.getResourceActions(),formattedActionText, formattedResourceText);
             if(toRemove != null  && HelperClass.getAllResourceActions(assignCategories.getResourceActions(), toRemove.getResource()).size() > 1){
                 List<PrincipalCategory> nameList = new ArrayList<>();
                 assignCategories.getPrincipalCategories().forEach(principalCategory -> {
@@ -613,7 +613,7 @@ public class GraphDisplay {
                     } else if (actionType == UndoClass.UNDO_TYPE.ADD_RESOURCE) {
                         Resource resource = (Resource) lastEntry.get(1);
                         Resource fixedRes = HelperClass.getResourceByName(assignCategories.getResources(), resource.getName());
-                        List<Action> resourceActions = HelperClass.getAllResourceActions(assignCategories.getResourceActions(), fixedRes);
+                        List<ResourceAction> resourceActions = HelperClass.getAllResourceActions(assignCategories.getResourceActions(), fixedRes);
                         assignCategories.getPrincipalCategories().forEach(principalCategory -> principalCategory.getActions().removeAll(resourceActions));
                         assignCategories.getResourceActions().removeAll(resourceActions);
                         assignCategories.getResources().remove(fixedRes);
@@ -621,10 +621,10 @@ public class GraphDisplay {
 
                     } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_RESOURCE) {
                         Resource toAdd = (Resource) lastEntry.get(1);
-                        Map<Action, List<PrincipalCategory>> assignedPerms = (Map<Action, List<PrincipalCategory>>) lastEntry.get(2);
+                        Map<ResourceAction, List<PrincipalCategory>> assignedPerms = (Map<ResourceAction, List<PrincipalCategory>>) lastEntry.get(2);
                         assignCategories.addResource(toAdd);
-                        for (Action a : assignedPerms.keySet()) {
-                            Action fixedAction = new Action(a.getName(), toAdd);
+                        for (ResourceAction a : assignedPerms.keySet()) {
+                            ResourceAction fixedAction = new ResourceAction(a.getName(), toAdd);
                             assignCategories.getResourceActions().add(fixedAction);
                             List<PrincipalCategory> categories = assignedPerms.get(a);
                             for (PrincipalCategory currentPrincipalCategory : categories) {
@@ -635,15 +635,15 @@ public class GraphDisplay {
                         }
 
                     } else if (actionType == UndoClass.UNDO_TYPE.ADD_ACTION) {
-                        Action a = (Action) lastEntry.get(1);
-                        Action ref = HelperClass.getActionByName(assignCategories.getResourceActions(), a.getName(), a.getResource().getName());
+                        ResourceAction a = (ResourceAction) lastEntry.get(1);
+                        ResourceAction ref = HelperClass.getActionByName(assignCategories.getResourceActions(), a.getName(), a.getResource().getName());
                         assignCategories.getPrincipalCategories().forEach(principalCategory -> principalCategory.removeAction(ref));
                         assignCategories.getResourceActions().remove(ref);
 
                     } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_ACTION) {
-                        Action a = (Action) lastEntry.get(1);
+                        ResourceAction a = (ResourceAction) lastEntry.get(1);
                         Resource resourceRef = HelperClass.getResourceByName(assignCategories.getResources(), a.getResource().getName());
-                        Action actionRef = new Action(a.getName(), resourceRef);
+                        ResourceAction actionRef = new ResourceAction(a.getName(), resourceRef);
                         assignCategories.getResourceActions().add(actionRef);
                         List<PrincipalCategory> categories = (List<PrincipalCategory>) lastEntry.get(2);
                         for (PrincipalCategory category : categories) {
@@ -673,9 +673,9 @@ public class GraphDisplay {
                         PrincipalCategory oldCategory = (PrincipalCategory) lastEntry.get(1);
                         List<PrincipalCategory> oldSeniorCategories = (List<PrincipalCategory>) lastEntry.get(2);
                         oldCategory.getPrincipals().clear();
-                        List<Action> fixedActions = new ArrayList<>();
-                        for (Action oldAction : oldCategory.getActions()) {
-                            Action actionRef = HelperClass.getActionByName(assignCategories.getResourceActions(), oldAction.getName(), oldAction.getResource().getName());
+                        List<ResourceAction> fixedActions = new ArrayList<>();
+                        for (ResourceAction oldAction : oldCategory.getActions()) {
+                            ResourceAction actionRef = HelperClass.getActionByName(assignCategories.getResourceActions(), oldAction.getName(), oldAction.getResource().getName());
                             fixedActions.add(actionRef);
                         }
                         oldCategory.setActions(fixedActions);
@@ -700,7 +700,7 @@ public class GraphDisplay {
 
                     } else if (actionType == UndoClass.UNDO_TYPE.UPDATE_PERMISSIONS) {
                         PrincipalCategory curr = (PrincipalCategory) lastEntry.get(1);
-                        List<Action> oldActions = (List<Action>) lastEntry.get(2);
+                        List<ResourceAction> oldActions = (List<ResourceAction>) lastEntry.get(2);
                         curr.setActions(oldActions);
 
                     } else if (actionType == UndoClass.UNDO_TYPE.UPDATE_HIERARCHY) {
@@ -753,9 +753,9 @@ public class GraphDisplay {
         JButton okButton = new JButton("OK");
         okButton.addActionListener(e -> {
             Principal principal = HelperClass.getPrincipalByName(assignCategories.getPrincipals(), field1.getText());
-            Action action = HelperClass.getActionByName(assignCategories.getResourceActions(), field2.getText(), field3.getText());
+            ResourceAction action = HelperClass.getActionByName(assignCategories.getResourceActions(), field2.getText(), field3.getText());
             if(principal != null && action != null){
-                Set<Action> perms = new HashSet<>();
+                Set<ResourceAction> perms = new HashSet<>();
                 for(PrincipalCategory pc : assignCategories.getPrincipalCategories()){
                     List<PrincipalCategory> allCategories = HelperClass.findAllJuniorCategories(pc);
                     if(pc.getPrincipals().contains(principal)) {
@@ -797,11 +797,11 @@ public class GraphDisplay {
                 } else if (firstElem == UndoClass.UNDO_TYPE.REMOVE_RESOURCE) {
                     logList.add(firstElem + " " +  ((Resource) innerList.get(1)).getName());
                 } else if (firstElem == UndoClass.UNDO_TYPE.ADD_ACTION) {
-                    logList.add(firstElem + " " +  "Action: " + ((Action) innerList.get(1)).getName() +
-                            " Resource: " + ((Action) innerList.get(1)).getResource().getName());
+                    logList.add(firstElem + " " +  "Action: " + ((ResourceAction) innerList.get(1)).getName() +
+                            " Resource: " + ((ResourceAction) innerList.get(1)).getResource().getName());
                 } else if (firstElem == UndoClass.UNDO_TYPE.REMOVE_ACTION) {
-                    logList.add(firstElem + " " +  "Action: " + ((Action) innerList.get(1)).getName() +
-                            " Resource: " + ((Action) innerList.get(1)).getResource().getName());
+                    logList.add(firstElem + " " +  "Action: " + ((ResourceAction) innerList.get(1)).getName() +
+                            " Resource: " + ((ResourceAction) innerList.get(1)).getResource().getName());
                 } else if (firstElem == UndoClass.UNDO_TYPE.UPDATE_CATEGORY) {
                     logList.add(firstElem + " " +  ((PrincipalCategory) innerList.get(2)).getName());
                 } else if (firstElem == UndoClass.UNDO_TYPE.CREATE_CATEGORY) {
@@ -907,19 +907,19 @@ public class GraphDisplay {
             PrincipalCategory principalCategory = HelperClass.getCategoryByName(assignCategories.getPrincipalCategories(), text);
             if (principalCategory != null) {
                 PrincipalRulePanel prp = new PrincipalRulePanel(assignCategories);
-                Set<Action> juniorActions = new HashSet<>();
+                Set<ResourceAction> juniorActions = new HashSet<>();
                 for(PrincipalCategory jr: HelperClass.findAllJuniorCategories(principalCategory)){
                     if(!jr.equals(principalCategory)) {
                         juniorActions.addAll(jr.getActions());
                     }
                 }
-                for (Action a : juniorActions) {
+                for (ResourceAction a : juniorActions) {
                     JCheckBox curr = prp.getActionJCheckBoxMap().get(a);
                     if (curr != null) {
                         curr.setText("Inherited permission");
                     }
                 }
-                for(Action a :  principalCategory.getActions()){
+                for(ResourceAction a :  principalCategory.getActions()){
                     JCheckBox curr = prp.getActionJCheckBoxMap().get(a);
                     if(curr != null){
                         if(juniorActions.contains(a)){
@@ -937,9 +937,9 @@ public class GraphDisplay {
                 tempPanel.add(prp.getPanel(), BorderLayout.CENTER);
                 tempPanel.add(submitButton, BorderLayout.NORTH);
                 submitButton.addActionListener(e -> {
-                    List<Action> oldActionList = new ArrayList<>(principalCategory.getActions());
+                    List<ResourceAction> oldActionList = new ArrayList<>(principalCategory.getActions());
                     principalCategory.getActions().clear();
-                    for (Action a : assignCategories.getResourceActions()) {
+                    for (ResourceAction a : assignCategories.getResourceActions()) {
                         JCheckBox currCheckBox = prp.getActionJCheckBoxMap().get(a);
                         if (currCheckBox != null) {
                             if (currCheckBox.isSelected()) {
@@ -978,7 +978,7 @@ public class GraphDisplay {
         submitButton.addActionListener(e -> {
             boolean error = false;
             List<String> uniqueActionNames = new ArrayList<>();
-            List<Action> resourceActions = new ArrayList<>();
+            List<ResourceAction> resourceActions = new ArrayList<>();
             Resource resource = null;
             JTextField resourceName = rrp.getResourceNameField();
             if (resourceName.getText() != null && !resourceName.getText().isBlank() && HelperClass.getResourceByName(assignCategories.getResources(), resourceName.getText()) == null) {
@@ -992,7 +992,7 @@ public class GraphDisplay {
                         if (!uniqueActionNames.contains(currField.getText().toLowerCase().strip())) {
                             String currActionName = currField.getText().toLowerCase().strip();
                             uniqueActionNames.add(currField.getText().toLowerCase().strip());
-                            resourceActions.add(new Action(currActionName, resource));
+                            resourceActions.add(new ResourceAction(currActionName, resource));
                         } else {
                             error = true;
                         }
@@ -1024,11 +1024,11 @@ public class GraphDisplay {
         if (text != null && !text.isBlank()) {
             Resource toRemove = HelperClass.getResourceByName(assignCategories.getResources(), text);
             if (toRemove != null) {
-                List<Action> resourceActions = HelperClass.getAllResourceActions(assignCategories.getResourceActions(), toRemove);
-                Map<Action, List<PrincipalCategory>> actionCategoryNames = new HashMap<>();
+                List<ResourceAction> resourceActions = HelperClass.getAllResourceActions(assignCategories.getResourceActions(), toRemove);
+                Map<ResourceAction, List<PrincipalCategory>> actionCategoryNames = new HashMap<>();
                 for(PrincipalCategory pc : assignCategories.getPrincipalCategories()){
-                    List<Action> categoryActions = pc.getActions();
-                    for(Action a : resourceActions){
+                    List<ResourceAction> categoryActions = pc.getActions();
+                    for(ResourceAction a : resourceActions){
                         if(categoryActions.contains(a)){
                             List<PrincipalCategory> categoryList;
                             if(actionCategoryNames.containsKey(a)){
@@ -1316,7 +1316,7 @@ public class GraphDisplay {
         return false;
     }
 
-    public boolean isRedundant_CA_Edge(PrincipalCategory category, Action action, List<Object> graphNodes, boolean[][] adjacencyMatrix) {
+    public boolean isRedundant_CA_Edge(PrincipalCategory category, ResourceAction action, List<Object> graphNodes, boolean[][] adjacencyMatrix) {
         int actionIndex = HelperClass.getActionIndex(graphNodes, action);
 
         List<PrincipalCategory> juniorCategories = HelperClass.findAllJuniorCategories(category);
@@ -1343,7 +1343,7 @@ public class GraphDisplay {
                 addNode("Principal category: " + p.getName(), "green");
                 graphNodes.add(p);
             }
-            for (Action a : assignCategories.getResourceActions()) {
+            for (ResourceAction a : assignCategories.getResourceActions()) {
                 addNode("Action: " + a.getName() + " " + a.getResource().getName(), "pink");
                 graphNodes.add(a);
             }
@@ -1366,8 +1366,8 @@ public class GraphDisplay {
                         hasEdge = HelperClass.getPrincipalByName(((PrincipalCategory) firstNode).getPrincipals(), ((Principal) secondNode).getName()) != null;
                     } else if (firstNode instanceof PrincipalCategory && secondNode instanceof PrincipalCategory) {
                         hasEdge = HelperClass.getCategoryByName(((PrincipalCategory) firstNode).getJuniorCategories(), ((PrincipalCategory) secondNode).getName()) != null;
-                    } else if (firstNode instanceof PrincipalCategory && secondNode instanceof Action) {
-                        hasEdge = HelperClass.getActionByName(((PrincipalCategory) firstNode).getActions(), ((Action) secondNode).getName(), ((Action) secondNode).getResource().getName()) != null;
+                    } else if (firstNode instanceof PrincipalCategory && secondNode instanceof ResourceAction) {
+                        hasEdge = HelperClass.getActionByName(((PrincipalCategory) firstNode).getActions(), ((ResourceAction) secondNode).getName(), ((ResourceAction) secondNode).getResource().getName()) != null;
                     }
                     // Store the relationship between the two nodes in the matrix
                     adjacencyMatrix[i][j] = hasEdge;
@@ -1388,7 +1388,7 @@ public class GraphDisplay {
                 }
             }
 
-            for (Action a : assignCategories.getResourceActions()) {
+            for (ResourceAction a : assignCategories.getResourceActions()) {
                 String id1 = "Action: " + a.getName() + " " + a.getResource().getName();
                 String id2 = "Resource: " + a.getResource().getName();
                 String edgeId = id1 + id2;
@@ -1399,7 +1399,7 @@ public class GraphDisplay {
 
             for (PrincipalCategory p : assignCategories.getPrincipalCategories()) {
                 String id1 = "Principal category: " + p.getName();
-                for (Action a : p.getActions()) {
+                for (ResourceAction a : p.getActions()) {
                     String id2 = "Action: " + a.getName() + " " + a.getResource().getName();
                     String edgeId = id1 + id2;
 

@@ -4,19 +4,14 @@ import categories.*;
 import categoryrules.DateRule;
 import categoryrules.IntegerRule;
 import categoryrules.StringRule;
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import guipanels.HelperClass;
 import org.bson.Document;
 import principal_resource_attributes.DateAttribute;
 import principal_resource_attributes.IntegerAttribute;
 import principal_resource_attributes.StringAttribute;
 
-import javax.print.Doc;
 import java.util.*;
 
 
@@ -84,19 +79,19 @@ public class MongoMain {
             } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_RESOURCE) {
                 Resource toAdd = (Resource) currEntry.get(1);
                 type.put("resource", convertSingleResourceToDocument(toAdd));
-                Map<Action, List<PrincipalCategory>> assignedPerms = (Map<Action, List<PrincipalCategory>>) currEntry.get(2);
+                Map<ResourceAction, List<PrincipalCategory>> assignedPerms = (Map<ResourceAction, List<PrincipalCategory>>) currEntry.get(2);
                 List<Document> docList = new ArrayList<>();
-                for(Action a : assignedPerms.keySet()){
+                for(ResourceAction a : assignedPerms.keySet()){
                     List<PrincipalCategory> curr = assignedPerms.get(a);
                     docList.add(convertSingleActionToDocument(a).append("categories", convertJuniorCategoriesToDocuments(curr)));
                 }
                 type.put("actionMapping", docList);
             } else if (actionType == UndoClass.UNDO_TYPE.ADD_ACTION) {
-                Action a = (Action) currEntry.get(1);
+                ResourceAction a = (ResourceAction) currEntry.get(1);
                 type.put("action", convertSingleActionToDocument(a));
 
             } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_ACTION) {
-                Action a = (Action) currEntry.get(1);
+                ResourceAction a = (ResourceAction) currEntry.get(1);
                 List<PrincipalCategory> categories = (List<PrincipalCategory>) currEntry.get(2);
                 type.put("action", convertSingleActionToDocument(a));
                 type.put("categories", convertJuniorCategoriesToDocuments(categories));
@@ -119,7 +114,7 @@ public class MongoMain {
 
             } else if (actionType == UndoClass.UNDO_TYPE.UPDATE_PERMISSIONS) {
                 PrincipalCategory curr = (PrincipalCategory) currEntry.get(1);
-                List<Action> oldActions = (List<Action>) currEntry.get(2);
+                List<ResourceAction> oldActions = (List<ResourceAction>) currEntry.get(2);
                 type.put("category", convertSinglePrincipalCategoryToDocument(curr));
                 type.put("actions", convertActionsToDocuments(oldActions));
 
@@ -161,12 +156,12 @@ public class MongoMain {
                 undoClass.addAddResource(new Resource(resourceName));
 
             } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_RESOURCE) {
-                Map<Action, List<PrincipalCategory>> assignedPerms = new HashMap<>();
+                Map<ResourceAction, List<PrincipalCategory>> assignedPerms = new HashMap<>();
                 Document resourceDoc = (Document) doc.get("resource");
                 Resource resource = new Resource(resourceDoc.getString("name"));
                 List<Document> actionMapping = (List<Document>) doc.get("actionMapping");
                 for(Document d : actionMapping){
-                    Action fromDb = new Action(d.getString("name"), resource);
+                    ResourceAction fromDb = new ResourceAction(d.getString("name"), resource);
                     List<PrincipalCategory> tempList = new ArrayList<>();
                     List<Document> associatedCategories = (List<Document>) d.get("categories");
                     for(Document categoryDoc : associatedCategories){
@@ -179,7 +174,7 @@ public class MongoMain {
             } else if (actionType == UndoClass.UNDO_TYPE.ADD_ACTION) {
                 Document actionDoc = (Document) doc.get("action");
                 Document resourceDoc = (Document) actionDoc.get("resource");
-                Action a = new Action(actionDoc.getString("name"), new Resource(resourceDoc.getString("name")));
+                ResourceAction a = new ResourceAction(actionDoc.getString("name"), new Resource(resourceDoc.getString("name")));
                 undoClass.addAddAction(a);
 
             } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_ACTION) {
@@ -190,7 +185,7 @@ public class MongoMain {
                 for(Document d : categoryDocs){
                     associatedCategories.add(new PrincipalCategory(d.getString("name")));
                 }
-                Action action = new Action(actionDoc.getString("name"), new Resource(resourceDoc.getString("name")));
+                ResourceAction action = new ResourceAction(actionDoc.getString("name"), new Resource(resourceDoc.getString("name")));
                 undoClass.addRemoveAction(action, associatedCategories);
 
             } else if (actionType == UndoClass.UNDO_TYPE.UPDATE_CATEGORY) {
@@ -217,7 +212,7 @@ public class MongoMain {
 
             } else if (actionType == UndoClass.UNDO_TYPE.UPDATE_PERMISSIONS) {
                 Document categoryDoc = (Document) doc.get("category");
-                List<Action> actionList = convertDocumentsToActions((List<Document>) doc.get("actions"));
+                List<ResourceAction> actionList = convertDocumentsToActions((List<Document>) doc.get("actions"));
                 PrincipalCategory category = convertDocumentToSinglePrincipalCategory(categoryDoc);
                 undoClass.addUpdatePermissions(category, actionList);
 
@@ -271,9 +266,9 @@ public class MongoMain {
         return docs;
     }
 
-    public List<Document> convertActionsToDocuments(List<Action> actions) {
+    public List<Document> convertActionsToDocuments(List<ResourceAction> actions) {
         List<Document> docs = new ArrayList<>();
-        for (Action action : actions) {
+        for (ResourceAction action : actions) {
             Document doc = new Document("name", action.getName());
             doc.put("resource", new Document("name", action.getResource().getName()));
             docs.add(doc);
@@ -344,7 +339,7 @@ public class MongoMain {
         String name = doc.getString("name");
         List<PrincipalCategory> juniorCategories = convertDocumentsToJuniorCategories((List<Document>) doc.get("juniorCategories"));
         List<Principal> principals = convertDocumentsToPrincipals((List<Document>) doc.get("principals"));
-        List<Action> actions = convertDocumentsToActions((List<Document>) doc.get("actions"));
+        List<ResourceAction> actions = convertDocumentsToActions((List<Document>) doc.get("actions"));
         List<StringRule> stringRules = convertDocumentsToStringRules((List<Document>) doc.get("stringRules"));
         List<IntegerRule> integerRules = convertDocumentsToIntegerRules((List<Document>) doc.get("integerRules"));
         List<DateRule> dateRules = convertDocumentsToDateRules((List<Document>) doc.get("dateRules"));
@@ -360,12 +355,12 @@ public class MongoMain {
         return principalCategory;
     }
 
-    public Action convertDocumentToSingleAction(Document doc) {
+    public ResourceAction convertDocumentToSingleAction(Document doc) {
         String name = doc.getString("name");
         Document resourceDoc = (Document) doc.get("resource");
         String resourceName = resourceDoc.getString("name");
         Resource resource = new Resource(resourceName);
-        Action action = new Action(name, resource);
+        ResourceAction action = new ResourceAction(name, resource);
         return action;
     }
 
@@ -381,7 +376,7 @@ public class MongoMain {
         return principalCategoryDoc;
     }
 
-    public Document convertSingleActionToDocument(Action action){
+    public Document convertSingleActionToDocument(ResourceAction action){
         Document doc = new Document("name", action.getName());
         doc.put("resource", new Document("name", action.getResource().getName()));
         return doc;
@@ -434,7 +429,7 @@ public class MongoMain {
         for (PrincipalCategory principalCategory : assignCategories.getPrincipalCategories()) {
             savePrincipalCategory(principalCategory);
         }
-        for (Action action : assignCategories.getResourceActions()) {
+        for (ResourceAction action : assignCategories.getResourceActions()) {
             saveAction(action);
         }
         for (Resource resource : assignCategories.getResources()) {
@@ -451,7 +446,7 @@ public class MongoMain {
         principalsCollection.insertOne(principalDoc);
     }
 
-    public void saveAction(Action action) {
+    public void saveAction(ResourceAction action) {
         MongoCollection<Document> actionsCollection = database.getCollection("actions");
         Document actionDoc = new Document("name", action.getName());
         actionDoc.put("resource", new Document("name", action.getResource().getName()));
@@ -467,7 +462,7 @@ public class MongoMain {
     public AssignCategories getAssignCategories() {
         List<Principal> principals = getPrincipals();
         List<PrincipalCategory> principalCategories = getPrincipalCategories();
-        List<Action> resourceActions = getActions();
+        List<ResourceAction> resourceActions = getActions();
         List<Resource> resources = getResources();
 
         AssignCategories toReturn = new AssignCategories(principals, principalCategories);
@@ -515,7 +510,7 @@ public class MongoMain {
             String name = doc.getString("name");
             List<PrincipalCategory> juniorCategories = convertDocumentsToJuniorCategories((List<Document>) doc.get("juniorCategories"));
             List<Principal> principals = convertDocumentsToPrincipals((List<Document>) doc.get("principals"));
-            List<Action> actions = convertDocumentsToActions((List<Document>) doc.get("actions"));
+            List<ResourceAction> actions = convertDocumentsToActions((List<Document>) doc.get("actions"));
             List<StringRule> stringRules = convertDocumentsToStringRules((List<Document>) doc.get("stringRules"));
             List<IntegerRule> integerRules = convertDocumentsToIntegerRules((List<Document>) doc.get("integerRules"));
             List<DateRule> dateRules = convertDocumentsToDateRules((List<Document>) doc.get("dateRules"));
@@ -533,9 +528,9 @@ public class MongoMain {
         return principalCategories;
     }
 
-    public List<Action> getActions() {
+    public List<ResourceAction> getActions() {
         MongoCollection<Document> actionsCollection = database.getCollection("actions");
-        List<Action> actions = new ArrayList<>();
+        List<ResourceAction> actions = new ArrayList<>();
 
         for (Document doc : actionsCollection.find()) {
             String name = doc.getString("name");
@@ -543,7 +538,7 @@ public class MongoMain {
             String resourceName = resourceDoc.getString("name");
             Resource resource = new Resource(resourceName);
 
-            Action action = new Action(name, resource);
+            ResourceAction action = new ResourceAction(name, resource);
             actions.add(action);
         }
 
@@ -609,15 +604,15 @@ public class MongoMain {
         return principals;
     }
 
-    public List<Action> convertDocumentsToActions(List<Document> docs) {
-        List<Action> actions = new ArrayList<>();
+    public List<ResourceAction> convertDocumentsToActions(List<Document> docs) {
+        List<ResourceAction> actions = new ArrayList<>();
         for (Document doc : docs) {
             String name = doc.getString("name");
             Document resourceDoc = (Document) doc.get("resource");
             String resourceName = resourceDoc.getString("name");
             Resource resource = new Resource(resourceName);
 
-            Action action = new Action(name, resource);
+            ResourceAction action = new ResourceAction(name, resource);
             actions.add(action);
         }
         return actions;

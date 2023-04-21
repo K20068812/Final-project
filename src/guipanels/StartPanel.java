@@ -1,10 +1,8 @@
 package guipanels;
 
-import categories.Action;
 import categories.AssignCategories;
 import database.LoadDataWorker;
 import database.LoadFileWorker;
-import database.MongoMain;
 import database.UndoClass;
 
 import javax.swing.*;

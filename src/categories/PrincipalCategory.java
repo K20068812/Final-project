@@ -10,7 +10,7 @@ public class PrincipalCategory {
     private String name;
     private List<PrincipalCategory> juniorCategories;
     private List<Principal> principals;
-    private List<Action> actions;
+    private List<ResourceAction> actions;
     private List<StringRule> stringRules;
     private List<IntegerRule> integerRules;
     private List<DateRule> dateRules;
@@ -35,8 +35,8 @@ public class PrincipalCategory {
             this.principals.add(new Principal(principal));
         }
         this.actions = new ArrayList<>();
-        for (Action action : other.getActions()) {
-            this.actions.add(new Action(action));
+        for (ResourceAction action : other.getActions()) {
+            this.actions.add(new ResourceAction(action));
         }
         this.stringRules = new ArrayList<>();
         for (StringRule rule : other.getStringRules()) {
@@ -71,19 +71,19 @@ public class PrincipalCategory {
         return Objects.hash(name, juniorCategories, principals, actions, stringRules, integerRules, dateRules);
     }
 
-    public List<Action> getActions(){
+    public List<ResourceAction> getActions(){
         return actions;
     }
 
-    public void setActions(List<Action> actions){
+    public void setActions(List<ResourceAction> actions){
         this.actions = actions;
     }
 
-    public void addAction(Action a){
+    public void addAction(ResourceAction a){
         actions.add(a);
     }
 
-    public void removeAction(Action a){
+    public void removeAction(ResourceAction a){
         actions.remove(a);
     }
 

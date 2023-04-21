@@ -11,7 +11,7 @@ public class AssignCategories {
 
         List<Principal> principals;
         List<PrincipalCategory> principalCategories;
-        List<Action> resourceActions;
+        List<ResourceAction> resourceActions;
         List<Resource> resources;
 
     public AssignCategories(List<Principal> principals, List<PrincipalCategory> principalCategories) {
@@ -22,7 +22,7 @@ public class AssignCategories {
         evaluatePrincipalCategories();
     }
 
-    public List<Action> getResourceActions() {
+    public List<ResourceAction> getResourceActions() {
         return resourceActions;
     }
 
@@ -34,7 +34,7 @@ public class AssignCategories {
         this.resources = resources;
     }
 
-    public void setResourceActions(List<Action> resourceActions) {
+    public void setResourceActions(List<ResourceAction> resourceActions) {
         this.resourceActions = resourceActions;
     }
 

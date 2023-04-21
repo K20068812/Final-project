@@ -1,6 +1,6 @@
 package guipanels;
 
-import categories.Action;
+import categories.ResourceAction;
 import categories.*;
 import categoryrules.*;
 import com.toedter.calendar.JCalendar;
@@ -66,10 +66,10 @@ public class HelperClass {
         return -1;
     }
 
-    public static int getActionIndex(List<Object> graphNodes, Action action){
+    public static int getActionIndex(List<Object> graphNodes, ResourceAction action){
         for (int i = 0; i < graphNodes.size(); i++) {
-            if(graphNodes.get(i) instanceof Action){
-                Action curr = (Action) graphNodes.get(i);
+            if(graphNodes.get(i) instanceof ResourceAction){
+                ResourceAction curr = (ResourceAction) graphNodes.get(i);
                 if(action.equals(curr)){
                     return i;
                 }
@@ -78,10 +78,10 @@ public class HelperClass {
         return -1;
     }
 
-    public static Action getActionByName(List<Action> inList, String actionName, String resourceName){
-        Action toReturn = null;
+    public static ResourceAction getActionByName(List<ResourceAction> inList, String actionName, String resourceName){
+        ResourceAction toReturn = null;
         String formattedName = actionName.toLowerCase().strip() + "|" + resourceName.toLowerCase().strip();
-        for(Action a: inList){
+        for(ResourceAction a: inList){
             String currName = a.getName().toLowerCase().strip() + "|" + a.getResource().getName().toLowerCase().strip();
             if(currName.equalsIgnoreCase(formattedName)){
                 toReturn = a;
@@ -462,9 +462,9 @@ public class HelperClass {
         }
     }
 
-    public static List<Action> getAllResourceActions(List<Action> actions, Resource r){
-        List<Action> toReturn = new ArrayList<>();
-        for(Action a: actions){
+    public static List<ResourceAction> getAllResourceActions(List<ResourceAction> actions, Resource r){
+        List<ResourceAction> toReturn = new ArrayList<>();
+        for(ResourceAction a: actions){
             if(a.getResource().equals(r)){
                 toReturn.add(a);
             }
@@ -476,12 +476,12 @@ public class HelperClass {
 
         List<Principal> principalList = new ArrayList<>(bad.getPrincipals());
         List<Resource> resourceList = new ArrayList<>(bad.getResources());
-        List<Action> resourceActionList = new ArrayList<>();
+        List<ResourceAction> resourceActionList = new ArrayList<>();
 
-        for (Action a : bad.getResourceActions()) {
+        for (ResourceAction a : bad.getResourceActions()) {
             for (Resource r : resourceList) {
                 if (a.getResource().equals(r)) {
-                    Action temp = new Action(a.getName(), r);
+                    ResourceAction temp = new ResourceAction(a.getName(), r);
                     resourceActionList.add(temp);
                 }
             }
@@ -500,8 +500,8 @@ public class HelperClass {
                 }
             }
 
-            for (Action a : pc.getActions()) {
-                for (Action ref : resourceActionList) {
+            for (ResourceAction a : pc.getActions()) {
+                for (ResourceAction ref : resourceActionList) {
                     if (a.equals(ref)) {
                         temp.addAction(ref);
                     }
