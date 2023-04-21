@@ -9,15 +9,18 @@ import de.flapdoodle.embed.mongo.*;
 import de.flapdoodle.embed.mongo.config.MongodConfig;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
+import guipanels.HelperClass;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -129,4 +132,113 @@ public class MongoMainTest {
             throw new RuntimeException("Failed to find a free port", e);
         }
     }
+
+
+    @Test
+    public void testUndoRemovePrincipal() {
+        AssignCategories assignCategories = new AssignCategories(new ArrayList<>(), new ArrayList<>());
+        int prevSize = assignCategories.getPrincipals().size();
+        UndoClass undoClass = new UndoClass();
+        undoClass.addRemovePrincipal(new Principal("John"));
+        simulateUndo(assignCategories, undoClass);
+        assertEquals(prevSize+1, assignCategories.getPrincipals().size());
+    }
+
+    @Test
+    public void testUndoCreatePrincipal() {
+        AssignCategories assignCategories = new AssignCategories(new ArrayList<>(), new ArrayList<>());
+        int prevSize = assignCategories.getPrincipals().size();
+        Principal p = new Principal("John");
+
+        UndoClass undoClass = new UndoClass();
+        undoClass.addCreatePrincipal(p);
+        simulateUndo(assignCategories, undoClass);
+        assertEquals(prevSize, assignCategories.getPrincipals().size());
+    }
+
+    @Test
+    public void testUndoCreateCategory() {
+        AssignCategories assignCategories = new AssignCategories(new ArrayList<>(), new ArrayList<>());
+        int prevSize = assignCategories.getPrincipals().size();
+        PrincipalCategory pc = new PrincipalCategory("Everyone");
+        pc.addPrincipal(new Principal("John"));
+        assignCategories.addPrincipalCategory(pc);
+        UndoClass undoClass = new UndoClass();
+        undoClass.addCreateCategory(pc);
+        simulateUndo(assignCategories, undoClass);
+        assertEquals(prevSize, assignCategories.getPrincipalCategories().size());
+    }
+
+    @Test
+    public void testUndoRemoveCategory() {
+        AssignCategories assignCategories = new AssignCategories(new ArrayList<>(), new ArrayList<>());
+        int prevSize = assignCategories.getPrincipals().size();
+        UndoClass undoClass = new UndoClass();
+        undoClass.addRemovePrincipal(new Principal("John"));
+        simulateUndo(assignCategories, undoClass);
+        assertEquals(prevSize+1, assignCategories.getPrincipals().size());
+    }
+
+    public void simulateUndo(AssignCategories assignCategories, UndoClass undoClass){
+            if (!undoClass.getActionTracker().isEmpty()) {
+                    List<Object> lastEntry = undoClass.getActionTracker().get(undoClass.getActionTracker().size() - 1);
+                    try {
+                        UndoClass.UNDO_TYPE actionType = (UndoClass.UNDO_TYPE) lastEntry.get(0);
+                        if (actionType == UndoClass.UNDO_TYPE.CREATE_PRINCIPAL) {
+                            Principal principal = (Principal) lastEntry.get(1);
+                            assignCategories.removePrincipal(HelperClass.getPrincipalByName(assignCategories.getPrincipals(), principal.getName()));
+                            assignCategories.evaluatePrincipalCategories();
+
+                        } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_PRINCIPAL) {
+                            Principal oldPrincipal = (Principal) lastEntry.get(1);
+                            assignCategories.addPrincipal(oldPrincipal);
+                            assignCategories.evaluatePrincipalCategories();
+                        }
+                            else if (actionType == UndoClass.UNDO_TYPE.CREATE_CATEGORY) {
+                            PrincipalCategory category = (PrincipalCategory) lastEntry.get(1);
+                            PrincipalCategory fixedRef = HelperClass.getCategoryByName(assignCategories.getPrincipalCategories(), category.getName());
+                            assignCategories.removePrincipalCategory(fixedRef);
+                            for (PrincipalCategory pc : assignCategories.getPrincipalCategories()) {
+                                pc.getJuniorCategories().remove(fixedRef);
+                            }
+
+                        } else if (actionType == UndoClass.UNDO_TYPE.REMOVE_CATEGORY) {
+                            PrincipalCategory oldCategory = (PrincipalCategory) lastEntry.get(1);
+                            List<PrincipalCategory> oldSeniorCategories = (List<PrincipalCategory>) lastEntry.get(2);
+                            oldCategory.getPrincipals().clear();
+                            List<ResourceAction> fixedActions = new ArrayList<>();
+                            for (ResourceAction oldAction : oldCategory.getActions()) {
+                                ResourceAction actionRef = HelperClass.getActionByName(assignCategories.getResourceActions(), oldAction.getName(), oldAction.getResource().getName());
+                                fixedActions.add(actionRef);
+                            }
+                            oldCategory.setActions(fixedActions);
+                            List<Principal> fixedPrincipals = new ArrayList<>();
+                            for (Principal p : oldCategory.getPrincipals()) {
+                                Principal principalRef = HelperClass.getPrincipalByName(assignCategories.getPrincipals(), p.getName());
+                                fixedPrincipals.add(principalRef);
+                            }
+                            oldCategory.setPrincipals(fixedPrincipals);
+                            List<PrincipalCategory> fixedJrCategories = new ArrayList<>();
+                            for (PrincipalCategory jr : oldCategory.getJuniorCategories()) {
+                                PrincipalCategory jrRef = HelperClass.getCategoryByName(assignCategories.getPrincipalCategories(), jr.getName());
+                                fixedJrCategories.add(jrRef);
+                            }
+                            oldCategory.setJuniorCategories(fixedJrCategories);
+                            for (PrincipalCategory oldSenior : oldSeniorCategories) {
+                                PrincipalCategory oldRef = HelperClass.getCategoryByName(assignCategories.getPrincipalCategories(), oldSenior.getName());
+                                oldRef.addJuniorCategory(oldCategory);
+                            }
+                            assignCategories.addPrincipalCategory(oldCategory);
+                            assignCategories.evaluatePrincipalCategories();
+
+                        }
+                    } catch(Exception err){
+                        err.printStackTrace();
+                    }
+                    undoClass.getActionTracker().remove(lastEntry);
+                }
+    }
+
 }
+
+
