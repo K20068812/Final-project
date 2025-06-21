@@ -1,5 +1,4 @@
-# PROJECT_FINAL
-To run this project, install the latest JDK from the Java website. Once you have installed it, open the file 'PRJ_UPDATED.jar'. 
+# Final project
 
 ![image](https://github.com/user-attachments/assets/2c83eedc-757a-42e2-b506-f2b78438160b)
 ![image](https://github.com/user-attachments/assets/350f3260-cbde-4f15-a9a7-d132b17652d4)
